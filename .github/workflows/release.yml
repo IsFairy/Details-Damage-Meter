@@ -17,3 +17,5 @@ jobs:
           fetch-depth: 0
 
       - uses: BigWigsMods/packager@v2
+        env:
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
