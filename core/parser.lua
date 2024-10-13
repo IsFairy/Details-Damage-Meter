@@ -86,7 +86,6 @@
 	--heaing
 		local healing_cache = setmetatable({}, Details.weaktable)
 		local banned_healing_spells = {
-			[326514] = true, --remove on 10.0 - Forgeborne Reveries - necrolords ability
 		}
 	--energy
 		local energy_cache = setmetatable({}, Details.weaktable)
@@ -427,6 +426,13 @@
 			[424094] = 414532,
 
 			[228649] = 100784, --monk blackout kick
+
+			[436304] = 439843, --frost dk reaper's mark
+			[439594] = 439843, --frost dk reaper's mark
+			[66198] = 222024, --frost dk obliterate offhand
+			[66196] = 222026, --frost dk frost strike offhand
+			[383312] = 383313, --frost dk abom limb
+			[441424] = 441426, --frost dk exterminate
 		}
 
 		--all totem
@@ -2318,13 +2324,17 @@
 			12/14 21:14:44.545  SPELL_SUMMON,Creature-0-4391-615-3107-15439-00001A8313,"Fire Elemental Totem",0x2112,0x0,Creature-0-4391-615-3107-15438-00001A8313,"Greater Fire Elemental",0x2112,0x0,32982,"Fire Elemental Totem",0x1
 			]]
 
+
 		if (isWOTLK or isCATA) then
 			if (npcId == 15439) then
 				petContainer.AddPet(petGuid:gsub("%-15439%-", "%-15438%-"), "Greater Fire Elemental", petFlags, sourceSerial, sourceName, sourceFlags, summonSpellId)
 			elseif (npcId == 15438) then
 				return
 			end
-		end
+        -- Brann Bronzebeard in delves
+        elseif (npcId == 210759) then
+            return
+        end
 
 		--send the summonSpellId to spellcache in order to identify if the pet is from an item, for instance: a trinket
 		local newPetName = Details222.Pets.GetPetNameFromCustomSpells(petName, summonSpellId, npcId)
@@ -2366,6 +2376,7 @@
 		[86273] = true, -- Illuminated Healing
 		[114908] = true, --Spirit Shell
 		[152118] = true, --Clarity of Will
+        [447134] = true, --Ravenous Scarab
 	}
 
 	function parser:heal_denied(token, time, sourceSerial, sourceName, sourceFlags, targetSerial, targetName, targetFlags, targetFlags2, spellIdAbsorb, spellNameAbsorb, spellSchoolAbsorb, serialHealer, nameHealer, flagsHealer, flags2Healer, spellIdHeal, spellNameHeal, typeHeal, amountDenied)
@@ -5454,8 +5465,17 @@ local SPELL_POWER_PAIN = SPELL_POWER_PAIN or (PowerEnum and PowerEnum.Pain) or 1
 
 				--if the current raid is current tier raid, pre-load the storage database
 				if (zoneType == "raid") then
-					if (Details:IsZoneIdFromCurrentExpansion(zoneMapID)) then
-						Details.ScheduleLoadStorage()
+					if (not Details222.EJCache.CacheCreated) then
+						--this is running right after the player login, wait a few seconds for the cache to be created
+						C_Timer.After(5, function()
+							if (Details:IsZoneIdFromCurrentExpansion(zoneMapID)) then
+								Details.ScheduleLoadStorage()
+							end
+						end)
+					else
+						if (Details:IsZoneIdFromCurrentExpansion(zoneMapID)) then
+							Details.ScheduleLoadStorage()
+						end
 					end
 				end
 
@@ -5755,7 +5775,7 @@ local SPELL_POWER_PAIN = SPELL_POWER_PAIN or (PowerEnum and PowerEnum.Pain) or 1
 
 			elseif (IsInGroup()) then
 				local unitIdCache = Details222.UnitIdCache.Party
-				for i = 1, 4 do
+				for i = 1, 5 do
 					local unitId = unitIdCache[i]
 					local guid = UnitGUID(unitId)
 					if (guid) then
@@ -5992,6 +6012,7 @@ local SPELL_POWER_PAIN = SPELL_POWER_PAIN or (PowerEnum and PowerEnum.Pain) or 1
 
 		Details222.MythicPlus.MapID = mapID
 		Details222.MythicPlus.Level = level --level of the key just finished
+		Details222.MythicPlus.ElapsedTime = time --total time of the mythic+ run
 		Details222.MythicPlus.OnTime = onTime
 		Details222.MythicPlus.KeystoneUpgradeLevels = keystoneUpgradeLevels
 		Details222.MythicPlus.PracticeRun = practiceRun
@@ -6012,6 +6033,17 @@ local SPELL_POWER_PAIN = SPELL_POWER_PAIN or (PowerEnum and PowerEnum.Pain) or 1
 		Details222.MythicPlus.BackgroundTexture = backgroundTexture
 
 		if (time) then
+            --Subtract death time from time of run to get the true time
+            local deaths = C_ChallengeMode.GetDeathCount()
+            if deaths and deaths > 0 then
+                local secondsPerDeath = 5
+                if level >= 7 then
+                    secondsPerDeath = 15
+                end
+
+                time = time - deaths * (secondsPerDeath * 1000)
+            end
+
         	Details222.MythicPlus.time = math.floor(time / 1000)
 			Details:Msg("run elapsed time:", DetailsFramework:IntegerToTimer(time / 1000))
 		else
@@ -6925,7 +6957,7 @@ local SPELL_POWER_PAIN = SPELL_POWER_PAIN or (PowerEnum and PowerEnum.Pain) or 1
 
 		elseif (IsInGroup()) then
 			local unitIdCache = Details222.UnitIdCache.Party
-			for i = 1, GetNumGroupMembers()-1 do
+			for i = 1, GetNumGroupMembers() do
 				local unitId = unitIdCache[i]
 
 				local unitName = GetUnitName(unitId, true)

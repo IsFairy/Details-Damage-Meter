@@ -466,6 +466,7 @@ BackdropTemplateMixin = {}
 ---@field GetParent fun(self: uiobject) : any
 ---@field GetPoint fun(self: uiobject, index: number): string, frame, string, number, number
 ---@field GetCenter fun(self: uiobject): number, number
+---@field GetLeft fun(self: uiobject): number
 ---@field SetPoint fun(self: uiobject, point: anchorpoint, relativeFrame: uiobject, relativePoint: anchorpoint, xOffset: number, yOffset: number)
 ---@field ClearAllPoints fun(self: uiobject)
 ---@field CreateAnimationGroup fun(self: uiobject, name: string|nil, templateName: string|nil) : animationgroup
@@ -576,6 +577,7 @@ BackdropTemplateMixin = {}
 ---@field SetMouseClickEnabled fun(self: frame, enabled: boolean)
 ---@field StartMoving fun(self: frame)
 ---@field IsMovable fun(self: frame) : boolean
+---@field IsMouseEnabled fun(self: frame) : boolean
 ---@field StartSizing fun(self: frame, sizingpoint: sizingpoint?)
 ---@field StopMovingOrSizing fun(self: frame)
 ---@field GetAttribute fun(self: frame, name: string) : any
