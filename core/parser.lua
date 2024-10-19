@@ -213,11 +213,10 @@
 			[194384] = true, --atonement uptime
 			[378134] = true, --rallied to victory
 		}
+		Details.CreditBuffToTarget = buffs_on_target
 
 		---@type table<spellid, boolean>
 		local ignoredWorldAuras = Details222.IgnoredWorldAuras
-
-		Details.CreditBuffToTarget = buffs_on_target
 
 		--store all information about augmentation evokers ~roskash
 		local augmentation_cache = {
@@ -231,6 +230,11 @@
 			shield = {},
 			ss = {},
 			infernobless = {},
+		}
+
+		local bombardment_stuff = {
+			spellId = 434481,
+			only_on_scalecomander = false,
 		}
 
 		Details.augmentation_cache = augmentation_cache
@@ -5944,6 +5948,9 @@ local SPELL_POWER_PAIN = SPELL_POWER_PAIN or (PowerEnum and PowerEnum.Pain) or 1
 			Details222.MythicPlus.WorldStateTimerStartAt = nil
 			Details222.MythicPlus.WorldStateTimerEndAt = nil
 			Details222.MythicPlus.LogStep("Event: CHALLENGE_MODE_START")
+
+			local activeKeystoneLevel, activeAffixIDs, wasActiveKeystoneCharged = C_ChallengeMode.GetActiveKeystoneInfo()
+			Details222.MythicPlus.Level = activeKeystoneLevel or 2
 		end
 	end
 
